@@ -4,6 +4,7 @@ package anagram
 import grails.rest.*
 import grails.converters.*
 import grails.transaction.*
+import redis.clients.jedis.Jedis
 import static org.springframework.http.HttpStatus.*
 import static org.springframework.http.HttpMethod.*
 
@@ -23,18 +24,31 @@ class AnagramController {
 
     // for POST
     def save() { 
-        println "Hello save action"
-		//redisService.withRedis { Jedis redis ->
-			//redis.set("foo", "superman")
-		//}
-		redisService.foo = "noodle"
-        params.each { name, value ->
-			println name + ', value: ' + value
-		}
+
+        // TODO, deal with content type if header not set
+		if (request.JSON) {
+            // TODO, move to some kind of data store service class
+            def wordsToAdd = request.JSON.words
+            // multiple commands will only use a single connection instance by using withRedis
+            redisService.withRedis { Jedis redis ->
+                //redis.set("bleh", "meh")
+                // sort word chars alphabetically
+                for (int i = 0 ; i < wordsToAdd.size() ; i++) {
+                    def word = wordsToAdd.get(i)
+                    char[] wordCharArray = word.toCharArray()
+                    Arrays.sort(wordCharArray)
+                    String sortedWord = new String(wordCharArray)
+                    redis.sadd(sortedWord, word)
+
+                    println 'hey word: ' + word
+                    println 'hey sorted word: ' + sortedWord
+                }
+            }
+
+        }
+		//println request.JSON
+		//println params
 		render (status: 201, text: 'created test')
-		
-        // /words.json, takes json array and adds to data store, prob redis
-		//curl -i -X POST -d '{ "words": ["read", "dear", "dare"] }' http://localhost:3000/words.json
     }
 
     // should be for DELETE
