@@ -4,12 +4,12 @@ package anagram
 import grails.rest.*
 import grails.converters.*
 import grails.transaction.*
-import redis.clients.jedis.Jedis
 import static org.springframework.http.HttpStatus.*
 import static org.springframework.http.HttpMethod.*
 
 class AnagramController {
 	def redisService
+    def anagramService // using Springs DI by convention here
 	static responseFormats = ['json', 'xml']
 	
     def index() { 
@@ -28,22 +28,9 @@ class AnagramController {
         // TODO, deal with content type if header not set
 		if (request.JSON) {
             // TODO, move to some kind of data store service class
-            def wordsToAdd = request.JSON.words
-            // multiple commands will only use a single connection instance by using withRedis
-            redisService.withRedis { Jedis redis ->
-                //redis.set("bleh", "meh")
-                // sort word chars alphabetically
-                for (int i = 0 ; i < wordsToAdd.size() ; i++) {
-                    def word = wordsToAdd.get(i)
-                    char[] wordCharArray = word.toCharArray()
-                    Arrays.sort(wordCharArray)
-                    String sortedWord = new String(wordCharArray)
-                    redis.sadd(sortedWord, word)
 
-                    println 'hey word: ' + word
-                    println 'hey sorted word: ' + sortedWord
-                }
-            }
+            def wordsToAdd = request.JSON.words
+            anagramService.addToDataStore(wordsToAdd)
 
         }
 		//println request.JSON
