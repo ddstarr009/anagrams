@@ -13,5 +13,11 @@ class UrlMappings {
         "/"(controller: 'application', action:'index')
         "500"(view: '/error')
         "404"(view: '/notFound')
+
+        // anagram mappings
+
+        "/anagram"(controller: 'anagram', action:'index')
+		// POST for adding words to dictionary
+        "/words.json"(controller: 'anagram', action:'save')
     }
 }
