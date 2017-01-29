@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.*
 import static org.springframework.http.HttpMethod.*
 
 class AnagramController {
+	def redisService
 	static responseFormats = ['json', 'xml']
 	
     def index() { 
@@ -22,6 +23,15 @@ class AnagramController {
 
     // for POST
     def save() { 
+        println "Hello save action"
+		//redisService.withRedis { Jedis redis ->
+			//redis.set("foo", "superman")
+		//}
+		redisService.foo = "noodle"
+        params.each { name, value ->
+			println name + ', value: ' + value
+		}
+		render (status: 201, text: 'created test')
 		
         // /words.json, takes json array and adds to data store, prob redis
 		//curl -i -X POST -d '{ "words": ["read", "dear", "dare"] }' http://localhost:3000/words.json
