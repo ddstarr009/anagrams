@@ -32,6 +32,7 @@ class AnagramService {
             int pos = c - 65;
             key *= PRIMES[pos];
         }
-        return key;
+        String strKey = String.valueOf(key)
+        return strKey;
     }
 }
