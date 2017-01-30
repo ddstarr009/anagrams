@@ -15,8 +15,16 @@ class AnagramControllerSpec extends Specification {
     def cleanup() {
     }
 
-    void "test something"() {
-        expect:"fix me"
-            true == false
+    void "test save method"() {
+		given:
+            AnagramService mockAnagramService = Mock()
+            controller.anagramService = mockAnagramService
+        when:
+			request.json = '{"words" : ["read", "dear", "dare"]}'
+			request.method = 'POST'
+			controller.save()
+        then:
+		    1 * mockAnagramService.addToDataStore(!null) >> "ok"
+			response.text == 'success'
     }
 }
