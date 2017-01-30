@@ -13,7 +13,6 @@ class AnagramController {
 	static responseFormats = ['json', 'xml']
 	
     def index() { 
-        //log.info "hello there index action"
         println "Hello David"
 		def testMap = ['test' : 'pants']
 		render testMap as JSON
@@ -24,18 +23,17 @@ class AnagramController {
 
     // for POST
     def save() { 
-
         // TODO, deal with content type if header not set
 		if (request.JSON) {
-            // TODO, move to some kind of data store service class
-
             def wordsToAdd = request.JSON.words
             anagramService.addToDataStore(wordsToAdd)
-
+            render (status: 201, text: 'success')
+        }
+        else {
+            //TODO, what if not JSON?
         }
 		//println request.JSON
 		//println params
-		render (status: 201, text: 'created test')
     }
 
     // should be for DELETE

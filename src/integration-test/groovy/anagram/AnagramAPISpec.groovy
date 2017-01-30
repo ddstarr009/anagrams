@@ -23,7 +23,12 @@ class AnagramAPISpec extends GebSpec {
 
     void "Test adding words to the data store"() {
         when:"we call a POST with JSON data to add words to our data store"
-            def resp = restBuilder().get("$baseUrl/words.json")
+            def resp = restBuilder().post("$baseUrl/words.json") {
+                contentType "application/json"
+                json {
+                    words = ["read", "dear", "dare"]
+                }
+            }
 
         then:"The response is correct"
             resp.status == 201
