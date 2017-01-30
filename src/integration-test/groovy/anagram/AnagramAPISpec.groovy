@@ -12,13 +12,14 @@ import grails.plugins.rest.client.RestBuilder
 @Integration
 @Rollback
 class AnagramAPISpec extends GebSpec {
+    def redisService
 
     def setup() {
-        // TODO
+		redisService.flushAll()
     }
 
     def cleanup() {
-        // TODO, delete data store
+		redisService.flushAll()
     }
 
     void "Test adding words to the data store"() {
