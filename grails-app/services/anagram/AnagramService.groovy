@@ -26,7 +26,7 @@ class AnagramService {
         // generating a unique key per anagram family, i.e., if a word has the same letters regardless of order, key will be the same
 		long key = 1L;
         for (char c : letters) {
-            if (c < 65) {
+            if (c < 65) { // A in ascii is 65, anything less than 65 must be some special char/number
                 return -1; // TODO, maybe throw exception b/c some weird char was passed in as a word
             }
             int pos = c - 65;
