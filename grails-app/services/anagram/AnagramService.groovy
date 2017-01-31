@@ -20,8 +20,8 @@ class AnagramService {
         }
     }
 
-    // TODO, test for this
-	def Map findAnagramsForWord(String word) {
+    // TODO, unit test for this
+	def Map findAnagramsForWord(String word, String limitParam) {
 		def key = generateKey(word)
 		// get all set members for key
 		def setMembers = redisService.smembers(key)
@@ -29,7 +29,15 @@ class AnagramService {
 		
 		if (setMembers.size() > 0) {
 			def filteredMembers = setMembers.findAll {!it.contains(word)}
-			anagramMap.anagrams = filteredMembers
+
+            if (limitParam != null) {
+                int limit = Integer.parseInt(limitParam);
+                def limitedMembers = (filteredMembers as List)[0..limit - 1]
+                anagramMap.anagrams = limitedMembers
+            }
+            else {
+                anagramMap.anagrams = filteredMembers
+            }
 			return anagramMap
 		} 
 		else {

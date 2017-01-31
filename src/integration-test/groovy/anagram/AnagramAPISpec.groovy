@@ -51,6 +51,16 @@ class AnagramAPISpec extends GebSpec {
             expectedAnagrams.equals(anagramList)
     }
 
+    void "Test finding anagrams for the given word with a limit passed in"() {
+        when:"we call a GET with a specific token and find its anagrams"
+            def resp = restBuilder().get("$baseUrl/api/read?limit=1")
+
+        then:"The response is correct"
+            resp.status == 200
+            List anagramList = new ArrayList(resp.json.anagrams)
+            anagramList.size() == 1
+    }
+
 
     RestBuilder restBuilder() {
         new RestBuilder()
