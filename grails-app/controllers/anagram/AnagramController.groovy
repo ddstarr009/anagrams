@@ -8,12 +8,10 @@ import static org.springframework.http.HttpStatus.*
 import static org.springframework.http.HttpMethod.*
 
 class AnagramController {
-	def redisService
     def anagramService // using Springs DI by convention here
 	static responseFormats = ['json', 'xml']
 	
     def index() { 
-        println "Hello David"
 		def testMap = ['test' : 'pants']
 		render testMap as JSON
     }
@@ -21,7 +19,6 @@ class AnagramController {
     // should be for GET /bleh/${word}
     //def show() { }
 
-    // for POST
     def save() { 
         // TODO, deal with content type if header not set
 		if (request.JSON) {
