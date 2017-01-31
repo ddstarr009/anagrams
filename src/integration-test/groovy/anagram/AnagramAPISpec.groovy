@@ -15,16 +15,17 @@ class AnagramAPISpec extends GebSpec {
     def redisService
 
     def setup() {
-		redisService.flushAll()
+		//redisService.flushAll()
     }
 
     def cleanup() {
-		redisService.flushAll()
+		//redisService.flushAll()
     }
 
     void "Test adding words to the data store"() {
+		redisService.flushAll()
         when:"we call a POST with JSON data to add words to our data store"
-            def resp = restBuilder().post("$baseUrl/words.json") {
+            def resp = restBuilder().post("$baseUrl/api/words") {
                 contentType "application/json"
                 json {
                     words = ["read", "dear", "dare"]
@@ -34,6 +35,22 @@ class AnagramAPISpec extends GebSpec {
         then:"The response is correct"
             resp.status == 201
     }
+
+    void "Test finding anagrams for the given word"() {
+        given: "our sorted anagrams for the word read"
+            List expectedAnagrams = new ArrayList()
+            expectedAnagrams.add("dare")
+            expectedAnagrams.add("dear")
+        when:"we call a GET with a specific token and find its anagrams"
+            def resp = restBuilder().get("$baseUrl/api/read")
+
+        then:"The response is correct"
+            resp.status == 200
+            List anagramList = new ArrayList(resp.json.anagrams)
+            Collections.sort(anagramList)
+            expectedAnagrams.equals(anagramList)
+    }
+
 
     RestBuilder restBuilder() {
         new RestBuilder()

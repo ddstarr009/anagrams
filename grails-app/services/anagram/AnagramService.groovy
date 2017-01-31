@@ -20,6 +20,7 @@ class AnagramService {
         }
     }
 
+    // TODO, test for this
 	def Map findAnagramsForWord(String word) {
 		def key = generateKey(word)
 		// get all set members for key
