@@ -16,8 +16,9 @@ class UrlMappings {
 
         // anagram mappings
 
-        "/anagram"(controller: 'anagram', action:'index', method: 'GET')
+        "/api/$word"(controller: 'anagram', action:'show', method: 'GET')
+
 		// POST for adding words to dictionary
-        "/words.json"(controller: 'anagram', action:'save', method:'POST')
+        "/api/words"(controller: 'anagram', action:'save', method:'POST')
     }
 }

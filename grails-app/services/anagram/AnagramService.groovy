@@ -20,6 +20,23 @@ class AnagramService {
         }
     }
 
+	def Map findAnagramsForWord(String word) {
+		def key = generateKey(word)
+		def setMembers = redisService.smembers(key)
+		def anagramMap = [:]
+		
+		if (setMembers.size() > 0) {
+			def filteredMembers = setMembers.findAll {!it.contains(word)}
+			List wordList = new ArrayList()
+			wordList.addAll(filteredMembers)
+			anagramMap.anagrams = wordList
+			return anagramMap
+		} 
+		else {
+			return anagramMap
+		}
+	}
+
     private String generateKey(String word) {
 		def wordUpper = word.toUpperCase()
 		char[] wordCharArray = wordUpper.toCharArray()

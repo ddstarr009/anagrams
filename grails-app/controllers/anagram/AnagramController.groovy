@@ -11,13 +11,12 @@ class AnagramController {
     def anagramService // using Springs DI by convention here
 	static responseFormats = ['json', 'xml']
 	
-    def index() { 
-		def testMap = ['test' : 'pants']
-		render testMap as JSON
-    }
+    //def index() { }
 
-    // should be for GET /bleh/${word}
-    //def show() { }
+    def show() { 
+		def anagrams = anagramService.findAnagramsForWord(params.word)
+		render anagrams as JSON
+	}
 
     def save() { 
         // TODO, deal with content type if header not set
