@@ -22,14 +22,13 @@ class AnagramService {
 
 	def Map findAnagramsForWord(String word) {
 		def key = generateKey(word)
+		// get all set members for key
 		def setMembers = redisService.smembers(key)
 		def anagramMap = [:]
 		
 		if (setMembers.size() > 0) {
 			def filteredMembers = setMembers.findAll {!it.contains(word)}
-			List wordList = new ArrayList()
-			wordList.addAll(filteredMembers)
-			anagramMap.anagrams = wordList
+			anagramMap.anagrams = filteredMembers
 			return anagramMap
 		} 
 		else {
