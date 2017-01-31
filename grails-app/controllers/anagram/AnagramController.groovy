@@ -29,12 +29,13 @@ class AnagramController {
         else {
             //TODO, what if not JSON?
         }
-		//println request.JSON
-		//println params
     }
 
-    // should be for DELETE
-    //def delete() { }
+    def delete() { 
+        anagramService.deleteWord(params.word)
+        render (status: 204)
+    }
+
     def exception(Exception exception) {
         logException exception
         render (status: 400, text: exception?.message)

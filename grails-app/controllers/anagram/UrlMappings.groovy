@@ -16,9 +16,13 @@ class UrlMappings {
 
         // anagram mappings
 
-        "/api/$word"(controller: 'anagram', action:'show', method: 'GET')
+        // GET anagrams for a word
+        "/api/anagrams/$word"(controller: 'anagram', action:'show', method: 'GET')
 
 		// POST for adding words to dictionary
         "/api/words"(controller: 'anagram', action:'save', method:'POST')
+
+        // DELETE a single word from data store
+        "/api/words/$word"(controller: 'anagram', action:'delete', method:'DELETE')
     }
 }
