@@ -38,4 +38,13 @@ class AnagramController {
 
     // should be for DELETE
     //def delete() { }
+    def exception(Exception exception) {
+        logException exception
+        render (status: 400, text: exception?.message)
+    }
+
+	/** Log exception */
+    private void logException(Exception exception) {
+        log.error "Exception occurred. ${exception?.message}", exception
+    }
 }

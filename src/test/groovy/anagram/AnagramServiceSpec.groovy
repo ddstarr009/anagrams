@@ -15,8 +15,24 @@ class AnagramServiceSpec extends Specification {
     def cleanup() {
     }
 
-    void "test something"() {
-        expect:"fix me"
-            true == false
+    void "test generateKey method happy path"() {
+		given: "a test word"
+			String word = "dear"
+		when: "anagramService.generateKey() is called"
+			def key = service.generateKey(word)
+
+		then: "Expect key to equal a certain product of prime numbers"
+			key == "9394"
     }
+
+    void "test generateKey method special chars should throw exception"() {
+		given: "a weird test word"
+			String word = "d*llea(r"
+		when: "anagramService.generateKey() is called"
+			def key = service.generateKey(word)
+
+		then: "Expect key to equal a certain product of prime numbers"
+			thrown(Exception)
+    }
+
 }

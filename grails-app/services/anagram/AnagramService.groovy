@@ -14,20 +14,20 @@ class AnagramService {
         redisService.withRedis { Jedis redis ->
             for (int i = 0 ; i < wordsToAdd.size() ; i++) {
                 def word = wordsToAdd.get(i)
-                def wordUpper = word.toUpperCase()
-                char[] wordCharArray = wordUpper.toCharArray()
-                def key = generateKey(wordCharArray)
+                def key = generateKey(word)
                 redis.sadd(key, word)
             }
         }
     }
 
-    private String generateKey(char[] letters) {
+    private String generateKey(String word) {
+		def wordUpper = word.toUpperCase()
+		char[] wordCharArray = wordUpper.toCharArray()
         // generating a unique key per anagram family, i.e., if a word has the same letters regardless of order, key will be the same
 		long key = 1L;
-        for (char c : letters) {
+        for (char c : wordCharArray) {
             if (c < 65) { // A in ascii is 65, anything less than 65 must be some special char/number
-                return -1; // TODO, maybe throw exception b/c some weird char was passed in as a word
+				throw new Exception("Please enter only valid alphabet chars.  No special chars please")
             }
             int pos = c - 65;
             key *= PRIMES[pos];
