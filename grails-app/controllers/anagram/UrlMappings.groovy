@@ -27,5 +27,8 @@ class UrlMappings {
         
         // DELETE all contents of data store
         "/api/words"(controller: 'anagram', action:'deleteAllWords', method:'DELETE')
+
+        // DELETE a word and all of its anagrams
+        "/api/anagrams/family/$word"(controller: 'anagram', action:'deleteAnagramFamily', method:'DELETE')
     }
 }

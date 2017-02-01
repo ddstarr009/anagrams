@@ -28,12 +28,43 @@ class AnagramAPISpec extends GebSpec {
             def resp = restBuilder().post("$baseUrl/api/words") {
                 contentType "application/json"
                 json {
-                    words = ["read", "dear", "dare"]
+                    words = ["read", "dear", "dare", "listen", "silent"]
                 }
             }
 
         then:"The words are added to the DB and we receive a 201 for created"
             resp.status == 201
+    }
+
+    // adding this to ensure silent exists before deleting it
+    void "Test finding anagrams for the given word"() {
+        given: "our expected anagram for the word listen"
+            List expectedAnagrams = new ArrayList()
+            expectedAnagrams.add("silent")
+        when:"we call a GET with a specific token and find its anagrams"
+            def resp = restBuilder().get("$baseUrl/api/anagrams/listen")
+
+        then:"The json includes the expected anagram defined above"
+            resp.status == 200
+            List anagramList = new ArrayList(resp.json.anagrams)
+            expectedAnagrams.equals(anagramList)
+    }
+
+    void "Test deleting a word and its anagrams"() {
+        when:"we call a DELETE with a specific token"
+            def resp = restBuilder().delete("$baseUrl/api/anagrams/family/listen")
+
+        then:"The response is a 204 and the anagram family will be deleted"
+            resp.status == 204
+    }
+
+    void "Test to verify that the listen anagram family has been deleted in previous test"() {
+        when:"we call a GET with a specific token and find its anagrams"
+            def resp = restBuilder().get("$baseUrl/api/anagrams/silent")
+
+        then:"the returned json will be empty"
+            resp.status == 200
+            resp.json.isEmpty() == true
     }
 
     void "Test finding anagrams for the given word"() {
@@ -98,6 +129,8 @@ class AnagramAPISpec extends GebSpec {
             resp.status == 200
             resp.json.isEmpty() == true
     }
+
+
 
 
 

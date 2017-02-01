@@ -31,6 +31,11 @@ class AnagramController {
         }
     }
 
+    def deleteAnagramFamily() { 
+        anagramService.deleteAnagramFamily(params.word)
+        render (status: 204)
+    }
+
     def deleteAllWords() { 
         anagramService.deleteAllWords()
         render (status: 204)
