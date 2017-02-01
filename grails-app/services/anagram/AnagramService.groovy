@@ -9,6 +9,10 @@ class AnagramService {
     def redisService
     private static final int[] PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113 ];
 
+    def deleteAllWords() {
+        redisService.flushDB()
+    }
+
     def deleteWord(String word) {
 		def key = generateKey(word)
         redisService.srem(key, word)
@@ -25,7 +29,7 @@ class AnagramService {
         }
     }
 
-    // TODO, fix unit test for this
+    // TODO, fix unit tests for this
 	def Map findAnagramsForWord(String word, String limitParam) {
 		def key = generateKey(word)
 		// get all set members for key

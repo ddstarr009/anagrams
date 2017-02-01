@@ -15,15 +15,15 @@ class AnagramAPISpec extends GebSpec {
     def redisService
 
     def setup() {
-		//redisService.flushAll()
     }
 
     def cleanup() {
-		//redisService.flushAll()
     }
 
+    // NOTE: the order of this test suite matters.  We are verifying Redis operations and app flow with this series of tests
+
     void "Test adding words to the data store"() {
-		redisService.flushAll() // we want to flush everything before the test suite begins
+		redisService.flushDB() // we want to flush everything before the test suite begins
         when:"we call a POST with JSON data to add words to our data store"
             def resp = restBuilder().post("$baseUrl/api/words") {
                 contentType "application/json"
@@ -81,6 +81,24 @@ class AnagramAPISpec extends GebSpec {
             List anagramList = new ArrayList(resp.json.anagrams)
             expectedAnagrams.equals(anagramList)
     }
+
+    void "Test deleting all words from data store"() {
+        when:"we call a DELETE for all words"
+            def resp = restBuilder().delete("$baseUrl/api/words")
+
+        then:"the status will be a 204"
+            resp.status == 204
+    }
+
+    void "Test finding anagrams for a given word after deleting all words in the data store"() {
+        when:"we call a GET with a specific token and find its anagrams"
+            def resp = restBuilder().get("$baseUrl/api/anagrams/read")
+
+        then:"the returned json will be empty"
+            resp.status == 200
+            resp.json.isEmpty() == true
+    }
+
 
 
     RestBuilder restBuilder() {
