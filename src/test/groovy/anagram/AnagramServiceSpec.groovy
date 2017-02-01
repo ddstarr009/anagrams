@@ -35,18 +35,18 @@ class AnagramServiceSpec extends Specification {
 			thrown(Exception)
     }
 
-    void "test findAnagramsForWord happy path"() {
-		given: "a test word"
-			String word = "read"
-            RedisService mockRedisService = Mock()
-            service.redisService = mockRedisService
-		when: "anagramService.findAnagramsForWord is called"
-			def anagramMap = service.findAnagramsForWord(word, null)
+    /*void "test findAnagramsForWord happy path"() {*/
+		//given: "a test word"
+			//String word = "read"
+            //RedisService mockRedisService = Mock()
+            //service.redisService = mockRedisService
+		//when: "anagramService.findAnagramsForWord is called"
+			//def anagramMap = service.findAnagramsForWord(word, null)
 
-		then: "Expect key to equal a certain product of prime numbers"
-            def mockSet = ["read", "dare", "dear"] as Set
-		    1 * mockRedisService.smembers(!null) >> mockSet
-    }
+		//then: "Expect key to equal a certain product of prime numbers"
+            //def mockSet = ["read", "dare", "dear"] as Set
+			//1 * mockRedisService.smembers(!null) >> mockSet
+    /*}*/
 
 /*    void "test findAnagramsForWord happy path with limit"() {*/
 		//given: "a test word"
