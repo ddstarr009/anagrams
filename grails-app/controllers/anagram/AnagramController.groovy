@@ -15,7 +15,7 @@ class AnagramController {
 
     // TODO, unit test
     def show() { 
-		def anagrams = anagramService.findAnagramsForWord(params.word, params.limit)
+		def anagrams = anagramService.findAnagramsForWord(params.word, params.limit, params.proper)
 		render anagrams as JSON
 	}
 

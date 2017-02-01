@@ -9,7 +9,6 @@ class AnagramService {
     def redisService
     private static final int[] PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113 ];
 
-    // TODO, unit test
     def areWordsInSameFamily(String words) {
         String[] wordsArray = words.split(",");
         def currentKey = null
@@ -55,24 +54,35 @@ class AnagramService {
         }
     }
 
+    // TODO, unit test and integration for proper/limit logic
+    private Set<String> filterMembers(Set<String> members, limitParam, properParam) {
+        if (limitParam == null && properParam == null) {
+            return members
+        }
+
+        if (properParam == "false") {
+            members = members.findAll { !Character.isUpperCase(it.charAt(0)) }
+        }
+
+        if (limitParam != null) {
+            int limit = Integer.parseInt(limitParam);
+            members = (members as List)[0..limit - 1]
+        }
+        return members
+    }
+
     // TODO, fix unit tests for this
-	def Map findAnagramsForWord(String word, String limitParam) {
+	def Map findAnagramsForWord(String word, String limitParam, String properParam) {
 		def key = generateKey(word)
 		// get all set members for key
 		def setMembers = redisService.smembers(key)
 		def anagramMap = [:]
 		
 		if (setMembers.size() > 0) {
-			def filteredMembers = setMembers.findAll {!it.contains(word)}
+			def initialMembers = setMembers.findAll {!it.contains(word)}
+            def filteredMembers = filterMembers(initialMembers, limitParam, properParam)
+            anagramMap.anagrams = filteredMembers
 
-            if (limitParam != null) {
-                int limit = Integer.parseInt(limitParam);
-                def limitedMembers = (filteredMembers as List)[0..limit - 1]
-                anagramMap.anagrams = limitedMembers
-            }
-            else {
-                anagramMap.anagrams = filteredMembers
-            }
 			return anagramMap
 		} 
 		else {
