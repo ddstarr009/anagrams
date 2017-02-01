@@ -15,6 +15,26 @@ class AnagramServiceSpec extends Specification {
     def cleanup() {
     }
 
+    void "test areWordsInSameFamily method happy path"() {
+		given: "a csv list of words"
+			String words = "dear,read,dare"
+		when: "anagramService.areWordsInSameFamily is called"
+			boolean isSameFamily = service.areWordsInSameFamily(words)
+
+		then: "Expect boolean to equal true for dear,read,dare"
+			isSameFamily == true
+    }
+
+    void "test areWordsInSameFamily method, not in same family"() {
+		given: "a csv list of words that are not in same family"
+			String words = "dear,read,dare,silent"
+		when: "anagramService.areWordsInSameFamily is called"
+			boolean isSameFamily = service.areWordsInSameFamily(words)
+
+		then: "Expect boolean to equal false for dear,read,dare,silent"
+			isSameFamily == false
+    }
+
     void "test generateKey method happy path"() {
 		given: "a test word"
 			String word = "dear"
