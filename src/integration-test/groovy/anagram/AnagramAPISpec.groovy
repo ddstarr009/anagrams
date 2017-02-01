@@ -130,6 +130,23 @@ class AnagramAPISpec extends GebSpec {
             resp.json.isEmpty() == true
     }
 
+    void "Test GET that takes a set of words and returns whether or not they are all anagrams of each other"() {
+        when:"we call a GET with a csv of words as a query param"
+            def resp = restBuilder().get("$baseUrl/api/anagrams/checker?words=read,dare,dear")
+
+        then:"the returned value should be true for read,dare,dear"
+            resp.status == 200
+            resp.text == "true"
+    }
+
+    void "Test GET that takes a set of words and returns whether or not they are all anagrams of each other, should be false"() {
+        when:"we call a GET with a csv of words as a query param"
+            def resp = restBuilder().get("$baseUrl/api/anagrams/checker?words=read,dare,dear,fruit")
+
+        then:"the returned value should be false for read,dare,dear,fruit"
+            resp.status == 200
+            resp.text == "false"
+    }
 
 
 

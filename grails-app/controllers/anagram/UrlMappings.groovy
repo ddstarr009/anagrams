@@ -30,5 +30,9 @@ class UrlMappings {
 
         // DELETE a word and all of its anagrams
         "/api/anagrams/family/$word"(controller: 'anagram', action:'deleteAnagramFamily', method:'DELETE')
+
+        // GET that takes a set of words and returns whether or not they are all anagrams of each other
+        // TODO, what should this URL look like?
+        "/api/anagrams/checker"(controller: 'anagram', action:'anagramChecker', method: 'GET')
     }
 }

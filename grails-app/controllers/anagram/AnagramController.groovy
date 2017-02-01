@@ -31,6 +31,16 @@ class AnagramController {
         }
     }
 
+    def anagramChecker() { 
+        if (params.words == null) {
+            render (status: 200, text: 'You did not supply any words')
+        }
+        else {
+            def isWordsSame = anagramService.areWordsInSameFamily(params.words)
+            render (status: 200, text: isWordsSame)
+        }
+    }
+
     def deleteAnagramFamily() { 
         anagramService.deleteAnagramFamily(params.word)
         render (status: 204)
