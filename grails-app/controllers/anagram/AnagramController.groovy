@@ -7,6 +7,7 @@ import grails.transaction.*
 import static org.springframework.http.HttpStatus.*
 import static org.springframework.http.HttpMethod.*
 import groovy.json.JsonSlurper
+import redis.clients.jedis.exceptions.JedisConnectionException
 
 class AnagramController {
     def anagramService // using Springs DI by convention here
@@ -67,6 +68,11 @@ class AnagramController {
     def exception(Exception exception) {
         logException exception
         render (status: 400, text: exception?.message)
+    }
+
+    def jedisConnectException(JedisConnectionException exception) {
+        logException exception
+        render (status: 500, text: 'is Redis running on port 6379? ' + exception?.message)
     }
 
 	/** Log exception */
