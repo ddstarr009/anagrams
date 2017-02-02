@@ -70,7 +70,6 @@ class AnagramService {
         return members
     }
 
-    // TODO, fix unit tests for this
 	def Map findAnagramsForWord(String word, String limitParam, String properParam) {
 		def key = generateKey(word)
 		// get all set members for key

@@ -9,7 +9,6 @@ import grails.plugins.redis.RedisService
  */
 @TestFor(AnagramService)
 class AnagramServiceSpec extends Specification {
-    def mockRedisService = Mock(RedisService)
 
     def setup() {
     }
@@ -99,33 +98,21 @@ class AnagramServiceSpec extends Specification {
             shouldBeEmptySet.size() == 0
     }
 
-    /*void "test findAnagramsForWord happy path"() {*/
-        //given: "a test word and a mocked service"
-            //String word = "read"
-            //Set mockSet = new HashSet()
-            //mockSet.add("read")
-            //mockSet.add("dare")
-            //mockSet.add("dear")
-            ////RedisService mockRedisService = Mock()
-            //// http://stackoverflow.com/questions/25983188/grails-mocking-a-service-and-its-method-inside-another-service
-            //mockRedisService.smembers(_) >> mockSet
-            //service.redisService = mockRedisService
-        //when: "anagramService.findAnagramsForWord is called"
-            //def anagramMap = service.findAnagramsForWord(word, null, null)
+    void "test findAnagramsForWord happy path"() {
+        given: "a test word and a mocked service"
+            String word = "read"
+            Set mockSet = new HashSet()
+            mockSet.add("read")
+            mockSet.add("dare")
+            mockSet.add("dear")
+            RedisService mockRedisService = GroovyMock()
+            mockRedisService.smembers(_) >> mockSet
+            service.redisService = mockRedisService
+        when: "anagramService.findAnagramsForWord is called"
+            def anagramMap = service.findAnagramsForWord(word, null, null)
 
-        //then: "Expect key to equal a certain product of prime numbers"
-            //anagramMap.anagrams
-            //anagramMap.anagrams.length() == 2
-     /*}*/
-
-/*    void "test findAnagramsForWord happy path with limit"() {*/
-		//given: "a test word"
-			//String word = "read"
-		//when: "anagramService.findAnagramsForWord is called with limit arg"
-			//def anagramMap = service.findAnagramsForWord(word, 1)
-
-		//then: "Expect key to equal a certain product of prime numbers"
-			//thrown(Exception)
-    //}
-
+        then: "Expect size to be 2 after removing read from the Set"
+            anagramMap.anagrams
+            anagramMap.anagrams.size() == 2
+    }
 }
