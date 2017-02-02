@@ -6,6 +6,7 @@ import grails.converters.*
 import grails.transaction.*
 import static org.springframework.http.HttpStatus.*
 import static org.springframework.http.HttpMethod.*
+import groovy.json.JsonSlurper
 
 class AnagramController {
     def anagramService // using Springs DI by convention here
@@ -19,15 +20,22 @@ class AnagramController {
 	}
 
     def save() { 
-        // TODO, deal with content type if header not set
 		if (request.JSON) {
             def wordsToAdd = request.JSON.words
             anagramService.addToDataStore(wordsToAdd)
             render (status: 201, text: 'created')
         }
-        else {
-            //TODO, what if not JSON?
-            //JSON.parse(request.reader.text)
+        else { // handle x-www-form-urlencoded content type
+            if (request.getParameterMap()) {
+                String firstKey = request.getParameterMap().keySet().iterator().next()
+                def jsonSlurper = new JsonSlurper()
+                def jsonObj = jsonSlurper.parseText(firstKey)
+                anagramService.addToDataStore(jsonObj.words)
+                render (status: 201, text: 'created')
+            }
+            else {
+                render (status: 400, text: 'No POST data')
+            }
         }
     }
 
