@@ -24,7 +24,7 @@ class AnagramControllerSpec extends Specification {
 			request.method = 'POST'
 			controller.save()
         then:
-		    1 * mockAnagramService.addToDataStore(!null) >> "ok"
-			response.text == 'success'
+		    1 * mockAnagramService.addToDataStore(!null)
+			response.text == 'created'
     }
 }

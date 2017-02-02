@@ -3,13 +3,6 @@ package anagram
 class UrlMappings {
 
     static mappings = {
-        delete "/$controller/$id(.$format)?"(action:"delete")
-        get "/$controller(.$format)?"(action:"index")
-        get "/$controller/$id(.$format)?"(action:"show")
-        post "/$controller(.$format)?"(action:"save")
-        put "/$controller/$id(.$format)?"(action:"update")
-        patch "/$controller/$id(.$format)?"(action:"patch")
-
         "/"(controller: 'application', action:'index')
         "500"(view: '/error')
         "404"(view: '/notFound')
@@ -17,22 +10,21 @@ class UrlMappings {
         // anagram mappings
 
         // GET anagrams for a word
-        "/api/anagrams/$word"(controller: 'anagram', action:'show', method: 'GET')
+        "/api/v1/anagrams/$word"(controller: 'anagram', action:'show', method: 'GET')
 
 		// POST for adding words to dictionary
-        "/api/words"(controller: 'anagram', action:'save', method:'POST')
+        "/api/v1/words"(controller: 'anagram', action:'save', method:'POST')
 
         // DELETE a single word from data store
-        "/api/words/$word"(controller: 'anagram', action:'delete', method:'DELETE')
+        "/api/v1/words/$word"(controller: 'anagram', action:'delete', method:'DELETE')
         
         // DELETE all contents of data store
-        "/api/words"(controller: 'anagram', action:'deleteAllWords', method:'DELETE')
+        "/api/v1/words"(controller: 'anagram', action:'deleteAllWords', method:'DELETE')
 
         // DELETE a word and all of its anagrams
-        "/api/anagrams/family/$word"(controller: 'anagram', action:'deleteAnagramFamily', method:'DELETE')
+        "/api/v1/anagrams/$word"(controller: 'anagram', action:'deleteAnagramFamily', method:'DELETE')
 
         // GET that takes a set of words and returns whether or not they are all anagrams of each other
-        // TODO, what should this URL look like?
-        "/api/anagrams/checker"(controller: 'anagram', action:'anagramChecker', method: 'GET')
+        "/api/v1/anagrams/checker"(controller: 'anagram', action:'anagramChecker', method: 'GET')
     }
 }

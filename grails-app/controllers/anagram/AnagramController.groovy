@@ -13,7 +13,6 @@ class AnagramController {
 	
     //def index() { }
 
-    // TODO, unit test
     def show() { 
 		def anagrams = anagramService.findAnagramsForWord(params.word, params.limit, params.proper)
 		render anagrams as JSON
@@ -24,10 +23,11 @@ class AnagramController {
 		if (request.JSON) {
             def wordsToAdd = request.JSON.words
             anagramService.addToDataStore(wordsToAdd)
-            render (status: 201, text: 'success')
+            render (status: 201, text: 'created')
         }
         else {
             //TODO, what if not JSON?
+            //JSON.parse(request.reader.text)
         }
     }
 

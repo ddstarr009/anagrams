@@ -54,7 +54,6 @@ class AnagramService {
         }
     }
 
-    // TODO, unit test and integration for proper/limit logic
     private Set<String> filterMembers(Set<String> members, limitParam, properParam) {
         if (limitParam == null && properParam == null) {
             return members
@@ -79,8 +78,8 @@ class AnagramService {
 		def anagramMap = [:]
 		
 		if (setMembers.size() > 0) {
-			def initialMembers = setMembers.findAll {!it.contains(word)}
-            def filteredMembers = filterMembers(initialMembers, limitParam, properParam)
+            setMembers.remove(word)
+            def filteredMembers = filterMembers(setMembers, limitParam, properParam)
             anagramMap.anagrams = filteredMembers
 
 			return anagramMap
