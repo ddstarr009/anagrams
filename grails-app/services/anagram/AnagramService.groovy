@@ -65,6 +65,9 @@ class AnagramService {
 
         if (limitParam != null) {
             int limit = Integer.parseInt(limitParam);
+            if (limit >= members.size()) {
+                return members
+            }
             members = (members as List)[0..limit - 1]
         }
         return members
@@ -94,7 +97,7 @@ class AnagramService {
         // generating a unique key per anagram family, i.e., if a word has the same letters regardless of order, key will be the same
 		long key = 1L;
         for (char c : wordCharArray) {
-            if (c < 65) { // A in ascii is 65, anything less than 65 must be some special char/number
+            if (c < 65 || c > 90) { // A in ascii is 65, anything less than 65 must be some special char/number
 				throw new Exception("Please enter only valid alphabet chars.  No special chars please, you entered: ${c}")
             }
             int pos = c - 65;
