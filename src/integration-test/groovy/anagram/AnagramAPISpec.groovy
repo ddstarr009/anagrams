@@ -36,18 +36,17 @@ class AnagramAPISpec extends GebSpec {
             resp.status == 201
     }
 
-    // adding this to ensure silent exists before deleting it
-    void "Test finding anagrams for the given word"() {
-        given: "our expected anagram for the word listen"
-            List expectedAnagrams = new ArrayList()
-            expectedAnagrams.add("silent")
-        when:"we call a GET with a specific token and find its anagrams"
-            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/listen")
+    void "Test that returns a count of words in the corpus and min/max/median/average word length"() {
+        when:"we make a GET req to the /words/stats endpoint"
+            def resp = restBuilder().get("$baseUrl/api/v1/words/stats")
 
-        then:"The json includes the expected anagram defined above"
+        then:"The resp is OK and the returned stats are correct"
             resp.status == 200
-            List anagramList = new ArrayList(resp.json.anagrams)
-            expectedAnagrams.equals(anagramList)
+            resp.json.wordCount == "6"
+            resp.json.averageWordLength == "4.6666666667"
+            resp.json.minimumWordLength == 4
+            resp.json.maximumWordLength == 6
+            resp.json.medianWordLength == 4
     }
 
     void "Test finding anagrams for the given word with no proper nouns in the response"() {
@@ -61,6 +60,19 @@ class AnagramAPISpec extends GebSpec {
             list.size() == 0
     }
 
+    // adding this to ensure silent exists before deleting it
+    void "Test finding anagrams for the given word"() {
+        given: "our expected anagram for the word listen"
+            List expectedAnagrams = new ArrayList()
+            expectedAnagrams.add("silent")
+        when:"we call a GET with a specific token and find its anagrams"
+            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/listen")
+
+        then:"The json includes the expected anagram defined above"
+            resp.status == 200
+            List anagramList = new ArrayList(resp.json.anagrams)
+            expectedAnagrams.equals(anagramList)
+    }
 
     void "Test deleting a word and its anagrams"() {
         when:"we call a DELETE with a specific token"
@@ -116,8 +128,8 @@ class AnagramAPISpec extends GebSpec {
     void "Test finding anagrams for the given word after deleting 'dare' in previous test"() {
         given: "our sorted anagrams for the word read"
             List expectedAnagrams = new ArrayList()
-            expectedAnagrams.add("dear")
             expectedAnagrams.add("Ader")
+            expectedAnagrams.add("dear")
         when:"we call a GET with a specific token and find its anagrams"
             def resp = restBuilder().get("$baseUrl/api/v1/anagrams/read")
 

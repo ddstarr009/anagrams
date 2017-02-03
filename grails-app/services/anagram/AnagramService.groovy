@@ -43,9 +43,9 @@ class AnagramService {
 
     def deleteWord(String word) {
 		def key = generateKey(word)
-        // need to remove from both the sorted set and the specified key's set
+        // need to remove from both the sorted set(ALL_WORDS_KEY) and the specified key's set
         redisService.srem(key, word)
-        redisService.zrem(ALL_WORDS_KEY, word.length(), word)
+        redisService.zrem(ALL_WORDS_KEY, word)
         calculateAndSetWordAvg()
     }
 

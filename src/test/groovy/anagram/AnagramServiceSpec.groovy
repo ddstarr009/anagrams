@@ -113,7 +113,6 @@ class AnagramServiceSpec extends Specification {
             1 * mockRedisService.set("wordAvg", "4.5")
     }
 
-
     void "test findAnagramsForWord happy path"() {
         given: "a test word and a mocked service"
             String word = "read"
