@@ -20,6 +20,11 @@ class AnagramController {
 		render anagrams as JSON
 	}
 
+    def wordsStats() {
+        def wordsStats = anagramService.fetchWordsStats()
+        render wordsStats as JSON
+    }
+
     def save() { 
 		if (request.JSON) {
             def wordsToAdd = request.JSON.words

@@ -2,12 +2,15 @@ package anagram
 
 import grails.transaction.Transactional
 import redis.clients.jedis.Jedis
+import java.text.NumberFormat
 
 @Transactional 
 class AnagramService {
 
     def redisService
     private static final int[] PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113 ];
+    private static final String ALL_WORDS_KEY = "allWords"
+    private static final String WORD_AVG_KEY = "wordAvg"
 
     def areWordsInSameFamily(String words) {
         String[] wordsArray = words.split(",");
@@ -40,7 +43,36 @@ class AnagramService {
 
     def deleteWord(String word) {
 		def key = generateKey(word)
+        // need to remove from both the sorted set and the specified key's set
         redisService.srem(key, word)
+        redisService.zrem(ALL_WORDS_KEY, word.length(), word)
+        calculateAndSetWordAvg()
+    }
+
+    // TODO, unit and integration test
+    def fetchWordsStats() {
+        def statsMap = [:]
+
+        redisService.withRedis { Jedis redis ->
+            statsMap.averageWordLength = redis.get(WORD_AVG_KEY)
+            def wordCount = redis.zcard(ALL_WORDS_KEY)
+            statsMap.wordCount = NumberFormat.getNumberInstance(Locale.US).format(wordCount)
+
+            def smallestWordSet = redis.zrange(ALL_WORDS_KEY, 0,0)
+            def smallestWord = smallestWordSet.iterator().next()
+            statsMap.minimumWordLength = smallestWord.length()
+
+            def largestWordSet = redis.zrange(ALL_WORDS_KEY, -1,-1)
+            def largestWord = largestWordSet.iterator().next()
+            statsMap.maximumWordLength = largestWord.length()
+
+            long medianIndex = Math.floor(wordCount.div(2))
+            def medianWordSet = redis.zrange(ALL_WORDS_KEY, medianIndex, medianIndex)
+            def medianWord = medianWordSet.iterator().next()
+            statsMap.medianWordLength = medianWord.length()
+        }
+
+        return statsMap
     }
 
     def addToDataStore(List<String> wordsToAdd) {
@@ -48,29 +80,13 @@ class AnagramService {
         redisService.withRedis { Jedis redis ->
             for (int i = 0 ; i < wordsToAdd.size() ; i++) {
                 def word = wordsToAdd.get(i)
+                // adding duplicate data via zadd and sadd to redis for performance reasons
+                redis.zadd(ALL_WORDS_KEY, word.length(), word)
                 def key = generateKey(word)
                 redis.sadd(key, word)
             }
         }
-    }
-
-    private Set<String> filterMembers(Set<String> members, limitParam, properParam) {
-        if (limitParam == null && properParam == null) {
-            return members
-        }
-
-        if (properParam == "false") {
-            members = members.findAll { !Character.isUpperCase(it.charAt(0)) }
-        }
-
-        if (limitParam != null) {
-            int limit = Integer.parseInt(limitParam);
-            if (limit >= members.size()) {
-                return members
-            }
-            members = (members as List)[0..limit - 1]
-        }
-        return members
+        calculateAndSetWordAvg()
     }
 
 	def Map findAnagramsForWord(String word, String limitParam, String properParam) {
@@ -91,6 +107,25 @@ class AnagramService {
 		}
 	}
 
+    private Set<String> filterMembers(Set<String> members, limitParam, properParam) {
+        if (limitParam == null && properParam == null) {
+            return members
+        }
+
+        if (properParam == "false") {
+            members = members.findAll { !Character.isUpperCase(it.charAt(0)) }
+        }
+
+        if (limitParam != null) {
+            int limit = Integer.parseInt(limitParam);
+            if (limit >= members.size()) {
+                return members
+            }
+            members = (members as List)[0..limit - 1]
+        }
+        return members
+    }
+
     private String generateKey(String word) {
 		def wordUpper = word.toUpperCase()
 		char[] wordCharArray = wordUpper.toCharArray()
@@ -106,4 +141,20 @@ class AnagramService {
         String strKey = String.valueOf(key)
         return strKey;
     }
+
+    // TODO, unit test
+    private void calculateAndSetWordAvg() {
+        // calculate avg word length and store in redis
+        def allWords = redisService.zrange(ALL_WORDS_KEY, 0 , -1)
+        def allWordsSize = allWords.size()
+        def wordLengthSum = 0
+
+        for (String word : allWords) {
+            wordLengthSum += word.length()
+        }
+
+        def avgWordLength = wordLengthSum.div(allWordsSize)
+        redisService.set(WORD_AVG_KEY, avgWordLength.toString())
+    }
+
 }
