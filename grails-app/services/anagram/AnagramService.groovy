@@ -54,9 +54,9 @@ class AnagramService {
         def statsMap = [:]
 
         redisService.withRedis { Jedis redis ->
-            statsMap.averageWordLength = redis.get(WORD_AVG_KEY)
             def wordCount = redis.zcard(ALL_WORDS_KEY)
             statsMap.wordCount = NumberFormat.getNumberInstance(Locale.US).format(wordCount)
+            statsMap.averageWordLength = redis.get(WORD_AVG_KEY)
 
             def smallestWordSet = redis.zrange(ALL_WORDS_KEY, 0,0)
             def smallestWord = smallestWordSet.iterator().next()
@@ -142,7 +142,6 @@ class AnagramService {
         return strKey;
     }
 
-    // TODO, unit test
     private void calculateAndSetWordAvg() {
         // calculate avg word length and store in redis
         def allWords = redisService.zrange(ALL_WORDS_KEY, 0 , -1)
