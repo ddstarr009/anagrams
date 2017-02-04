@@ -9,11 +9,45 @@ import grails.plugins.redis.RedisService
  */
 @TestFor(AnagramService)
 class AnagramServiceSpec extends Specification {
+    private static final String ALL_WORDS_KEY = "allWords"
+    private static final String WORD_AVG_KEY = "wordAvg"
+    private static final String FAMILY_COUNT_KEY = "familyCount"
 
     def setup() {
     }
 
     def cleanup() {
+    }
+
+    void "test getMedianWordLength even case "() {
+        given: "a mocked service"
+            Set mockSet = new HashSet()
+            mockSet.add("read")
+            mockSet.add("dare")
+
+            RedisService mockRedisService = GroovyMock()
+            service.redisService = mockRedisService
+        when: "anagramService.getMedianWordLength is called with an even count"
+            def medianWordLength = service.getMedianWordLength(4)
+
+        then: "Expect medianWordLength to be 4 and zrange was called with certain args"
+            1 * mockRedisService.zrange(ALL_WORDS_KEY, 1, 2) >> mockSet
+            medianWordLength == 4
+    }
+
+    void "test getMedianWordLength odd case"() {
+        given: "a mocked service"
+            Set mockSet = new HashSet()
+            mockSet.add("reading")
+
+            RedisService mockRedisService = GroovyMock()
+            service.redisService = mockRedisService
+        when: "anagramService.getMedianWordLength is called with an odd count"
+            def medianWordLength = service.getMedianWordLength(5)
+
+        then: "Expect medianWordLength to be 4 and zrange was called with certain args"
+            1 * mockRedisService.zrange(ALL_WORDS_KEY, 2, 2) >> mockSet
+            medianWordLength == 7
     }
 
     void "test areWordsInSameFamily method happy path"() {

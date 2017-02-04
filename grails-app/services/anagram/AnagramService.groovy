@@ -14,6 +14,7 @@ class AnagramService {
     private static final String WORD_AVG_KEY = "wordAvg"
     private static final String FAMILY_COUNT_KEY = "familyCount"
 
+    // do on POST
     def fetchMostAnagrams() {
         // fetching words with most anagrams, which means we have to find the anagramGroupKey that has the largest count
         Map familyCount = redisService.hgetAll(FAMILY_COUNT_KEY)
@@ -128,15 +129,14 @@ class AnagramService {
             def largestWord = largestWordSet.iterator().next()
             statsMap.maximumWordLength = largestWord.length()
 
-            long medianIndex = Math.floor(wordCount.div(2))
-            def medianWordSet = redis.zrange(ALL_WORDS_KEY, medianIndex, medianIndex)
-            def medianWord = medianWordSet.iterator().next()
-            statsMap.medianWordLength = medianWord.length()
+            def medianWordLength = getMedianWordLength(wordCount)
+            statsMap.medianWordLength = medianWordLength
         }
 
         return statsMap
     }
 
+    
     def addToDataStore(List<String> wordsToAdd) {
         for (int i = 0 ; i < wordsToAdd.size() ; i++) {
             def word = wordsToAdd.get(i)
@@ -239,4 +239,24 @@ class AnagramService {
         return wordLengthSum.div(allWordsSize)
     }
 
+    private getMedianWordLength(wordCount) {
+        if ((wordCount % 2) == 0 ) {
+            // word count is even
+            long medianIndex = Math.floor(wordCount.div(2))
+            Set medianWordSet = redisService.zrange(ALL_WORDS_KEY, medianIndex - 1, medianIndex)
+
+            def sum = 0
+            for (String word : medianWordSet) {
+                sum+= word.length()
+            }
+            return sum.div(2)
+        } 
+        else {
+            // word count is odd
+            long medianIndex = Math.floor(wordCount.div(2))
+            Set medianWordSet = redisService.zrange(ALL_WORDS_KEY, medianIndex, medianIndex)
+            String medianWord = medianWordSet.iterator().next()
+            return medianWord.length()
+        }
+    }
 }

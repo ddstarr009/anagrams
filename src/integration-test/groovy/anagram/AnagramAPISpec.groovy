@@ -23,6 +23,20 @@ class AnagramAPISpec extends GebSpec {
     // NOTE: the order of this test suite matters.  We are verifying Redis operations and app flow with this series of tests
     // if you change certain tests, e.g., the POST below, make sure you adjust the subsequent tests
 
+    void "Test that returns a count of words in the corpus and min/max/median/average word length after dictionary loaded"() {
+        when:"we make a GET req to the /words/stats endpoint after dictionary has been loaded"
+            def resp = restBuilder().get("$baseUrl/api/v1/words/stats")
+
+        then:"The resp is OK and the dictionary was loaded"
+            resp.status == 200
+            //235,885 is currently the size of the dictionary
+            def wordCount = resp.json.wordCount
+            def withoutCommas = wordCount.replaceAll(",", "")
+            int intCount = Integer.parseInt(withoutCommas)
+            intCount >= 235885
+            
+    }
+
     void "Test adding words to the data store"() {
 		redisService.flushDB() // we want to flush everything before the test suite begins
         when:"we call a POST with JSON data to add words to our data store"
