@@ -21,6 +21,7 @@ class AnagramAPISpec extends GebSpec {
     }
 
     // NOTE: the order of this test suite matters.  We are verifying Redis operations and app flow with this series of tests
+    // if you change certain tests, e.g., the POST below, make sure you adjust the subsequent tests
 
     void "Test adding words to the data store"() {
 		redisService.flushDB() // we want to flush everything before the test suite begins
@@ -34,6 +35,18 @@ class AnagramAPISpec extends GebSpec {
 
         then:"The words are added to the DB and we receive a 201 for created"
             resp.status == 201
+    }
+
+    void "Test that returns words with the most anagrams"() {
+        when:"we make a GET req to the anagrams/most endpoint"
+            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/most")
+
+        then:"The resp is OK and the returned anagrams are correct and from the read group"
+            resp.status == 200
+            List anagramList = new ArrayList(resp.json.wordsWithMostAnagrams)
+            def list = anagramList.findAll { it == 'Ader' }
+            list.size() == 1
+            resp.json.countOfAnagramGroup == 4
     }
 
     void "Test that returns a count of words in the corpus and min/max/median/average word length"() {

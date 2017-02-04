@@ -14,7 +14,6 @@ class AnagramService {
     private static final String WORD_AVG_KEY = "wordAvg"
     private static final String FAMILY_COUNT_KEY = "familyCount"
 
-    // TODO, call on post and delete? unit  and integration test
     def fetchMostAnagrams() {
         // fetching words with most anagrams, which means we have to find the anagramGroupKey that has the largest count
         Map familyCount = redisService.hgetAll(FAMILY_COUNT_KEY)
@@ -99,6 +98,7 @@ class AnagramService {
             }
         }
 
+        // calculating word avg for fast search on future reqs
         def wordAvg = calculateWordAvg()
         redisService.set(WORD_AVG_KEY, wordAvg.toString())
     }
@@ -168,6 +168,7 @@ class AnagramService {
                 }
             }
         }
+        // calculating word avg for fast search on future reqs
         def wordAvg = calculateWordAvg()
         redisService.set(WORD_AVG_KEY, wordAvg.toString())
     }
