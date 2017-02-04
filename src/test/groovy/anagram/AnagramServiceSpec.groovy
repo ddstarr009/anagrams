@@ -98,7 +98,7 @@ class AnagramServiceSpec extends Specification {
             shouldBeEmptySet.size() == 0
     }
 
-    void "test calculateAndSetWordAvg"() {
+    void "test calculateWordAvg"() {
         given: "a test Set and a mocked service"
             Set mockSet = new HashSet()
             mockSet.add("read")
@@ -107,10 +107,10 @@ class AnagramServiceSpec extends Specification {
             mockRedisService.zrange(_, _, _) >> mockSet
             service.redisService = mockRedisService
         when: "anagramService.calculateAndSetWordAvg is called"
-            service.calculateAndSetWordAvg()
+            def wordAvg = service.calculateWordAvg()
 
-        then: "Expect redisService.set to be called with certain args"
-            1 * mockRedisService.set("wordAvg", "4.5")
+        then: "Expect word avg to be 4.5"
+            wordAvg == 4.5
     }
 
     void "test findAnagramsForWord happy path"() {

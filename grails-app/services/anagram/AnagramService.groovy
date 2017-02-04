@@ -14,7 +14,7 @@ class AnagramService {
     private static final String WORD_AVG_KEY = "wordAvg"
     private static final String FAMILY_COUNT_KEY = "familyCount"
 
-    // TODO, unit  and integration test
+    // TODO, call on post and delete? unit  and integration test
     def fetchMostAnagrams() {
         // fetching words with most anagrams, which means we have to find the anagramGroupKey that has the largest count
         Map familyCount = redisService.hgetAll(FAMILY_COUNT_KEY)
@@ -99,7 +99,8 @@ class AnagramService {
             }
         }
 
-        calculateAndSetWordAvg()
+        def wordAvg = calculateWordAvg()
+        redisService.set(WORD_AVG_KEY, wordAvg.toString())
     }
 
     def fetchWordsStats() {
@@ -108,6 +109,15 @@ class AnagramService {
         redisService.withRedis { Jedis redis ->
             def wordCount = redis.zcard(ALL_WORDS_KEY)
             statsMap.wordCount = NumberFormat.getNumberInstance(Locale.US).format(wordCount)
+
+            def wordAvg = redis.get(WORD_AVG_KEY)
+
+            if (wordAvg == null) {
+                // key was not set for some reason, call calculateWordAvg and set for future reqs
+                wordAvg = calculateWordAvg()
+                redis.set(WORD_AVG_KEY, wordAvg.toString())
+            }
+
             statsMap.averageWordLength = redis.get(WORD_AVG_KEY)
 
             def smallestWordSet = redis.zrange(ALL_WORDS_KEY, 0,0)
@@ -158,7 +168,8 @@ class AnagramService {
                 }
             }
         }
-        calculateAndSetWordAvg()
+        def wordAvg = calculateWordAvg()
+        redisService.set(WORD_AVG_KEY, wordAvg.toString())
     }
 
 	def Map findAnagramsForWord(String word, String limitParam, String properParam) {
@@ -214,7 +225,7 @@ class AnagramService {
         return strKey
     }
 
-    private void calculateAndSetWordAvg() {
+    private BigDecimal calculateWordAvg() {
         // calculate avg word length and store in redis
         def allWords = redisService.zrange(ALL_WORDS_KEY, 0 , -1)
         def allWordsSize = allWords.size()
@@ -224,8 +235,7 @@ class AnagramService {
             wordLengthSum += word.length()
         }
 
-        def avgWordLength = wordLengthSum.div(allWordsSize)
-        redisService.set(WORD_AVG_KEY, avgWordLength.toString())
+        return wordLengthSum.div(allWordsSize)
     }
 
 }
