@@ -9,19 +9,44 @@ import java.text.NumberFormat
 class AnagramService {
 
     def redisService
-    private static final int[] PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113 ];
+    private static final int[] PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113 ]
     private static final String ALL_WORDS_KEY = "allWords"
     private static final String WORD_AVG_KEY = "wordAvg"
     private static final String FAMILY_COUNT_KEY = "familyCount"
 
+    // TODO, unit  and integration test
     def fetchMostAnagrams() {
-        // fetching words with most anagrams, which means we have to find the key that has the largest Set 
+        // fetching words with most anagrams, which means we have to find the anagramGroupKey that has the largest count
+        Map familyCount = redisService.hgetAll(FAMILY_COUNT_KEY)
 
+        if (familyCount.isEmpty()) {
+            return familyCount
+        }
 
+        def keyArray = familyCount.keySet() as String[]
+        def groupKeyWithMost = keyArray[0]
+        Map groupMapWithMost = [:]
+        int initialMost = Integer.parseInt(familyCount[groupKeyWithMost])
+        groupMapWithMost["length"] = initialMost
+        groupMapWithMost["groupKey"] = groupKeyWithMost
+
+        familyCount.each { k, v -> 
+            int groupCount = Integer.parseInt(v)
+            if (groupCount > groupMapWithMost.length) {
+                groupMapWithMost.length = groupCount
+                groupMapWithMost.groupKey = k
+            }
+        }
+
+		def setMembers = redisService.smembers(groupMapWithMost.groupKey)
+        Map result = [:]
+        result.wordsWithMostAnagrams = setMembers
+        result.countOfAnagramGroup = setMembers.size()
+        return result
     }
 
     def areWordsInSameFamily(String words) {
-        String[] wordsArray = words.split(",");
+        String[] wordsArray = words.split(",")
         def currentKey = null
         boolean sameFamily = true
 
@@ -164,7 +189,7 @@ class AnagramService {
         }
 
         if (limitParam != null) {
-            int limit = Integer.parseInt(limitParam);
+            int limit = Integer.parseInt(limitParam)
             if (limit >= members.size()) {
                 return members
             }
@@ -177,16 +202,16 @@ class AnagramService {
 		def wordUpper = word.toUpperCase()
 		char[] wordCharArray = wordUpper.toCharArray()
         // generating a unique key per anagram family, i.e., if a word has the same letters regardless of order, key will be the same
-		long key = 1L;
+		long key = 1L
         for (char c : wordCharArray) {
             if (c < 65 || c > 90) { // A in ascii is 65, anything less than 65 must be some special char/number
 				throw new Exception("Please enter only valid alphabet chars.  No special chars please, you entered: ${c}")
             }
-            int pos = c - 65;
-            key *= PRIMES[pos];
+            int pos = c - 65
+            key *= PRIMES[pos]
         }
         String strKey = String.valueOf(key)
-        return strKey;
+        return strKey
     }
 
     private void calculateAndSetWordAvg() {

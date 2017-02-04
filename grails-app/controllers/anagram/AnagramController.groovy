@@ -15,6 +15,7 @@ class AnagramController {
 	
     def mostAnagrams() { 
        def mostAnagrams = anagramService.fetchMostAnagrams() 
+       render mostAnagrams as JSON
     }
 
     def findAnagrams() { 
