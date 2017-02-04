@@ -1,6 +1,5 @@
 package anagram
 
-
 import grails.rest.*
 import grails.converters.*
 import grails.transaction.*
@@ -13,6 +12,11 @@ class AnagramController {
     def anagramService // using Springs DI by convention here
 	static responseFormats = ['json', 'xml']
 	
+    def anagramGroups() { 
+        def groupsData = anagramService.fetchGroupsByMinSize(params.minSize)
+        render groupsData as JSON
+    }
+
     def mostAnagrams() { 
        def mostAnagrams = anagramService.fetchMostAnagrams() 
        render mostAnagrams as JSON

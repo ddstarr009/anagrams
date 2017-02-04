@@ -21,6 +21,9 @@ class UrlMappings {
         // GET that identifies words with the most anagrams
         "/api/v1/anagrams/most"(controller: 'anagram', action:'mostAnagrams', method: 'GET')
 
+        // GET that returns all anagram groups of size >= x
+        "/api/v1/anagrams/groups/min/$minSize"(controller: 'anagram', action:'anagramGroups', method: 'GET')
+
 		// POST for adding words to dictionary
         "/api/v1/words"(controller: 'anagram', action:'addWords', method:'POST')
 
