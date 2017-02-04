@@ -13,9 +13,11 @@ class AnagramController {
     def anagramService // using Springs DI by convention here
 	static responseFormats = ['json', 'xml']
 	
-    //def index() { }
+    def mostAnagrams() { 
+       def mostAnagrams = anagramService.fetchMostAnagrams() 
+    }
 
-    def show() { 
+    def findAnagrams() { 
 		def anagrams = anagramService.findAnagramsForWord(params.word, params.limit, params.proper)
 		render anagrams as JSON
 	}
@@ -25,7 +27,7 @@ class AnagramController {
         render wordsStats as JSON
     }
 
-    def save() { 
+    def addWords() { 
 		if (request.JSON) {
             def wordsToAdd = request.JSON.words
             anagramService.addToDataStore(wordsToAdd)
@@ -65,7 +67,7 @@ class AnagramController {
         render (status: 204)
     }
 
-    def delete() { 
+    def deleteWord() { 
         anagramService.deleteWord(params.word)
         render (status: 204)
     }

@@ -2,6 +2,7 @@ package anagram
 
 import grails.transaction.Transactional
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.Transaction
 import java.text.NumberFormat
 
 @Transactional 
@@ -11,6 +12,13 @@ class AnagramService {
     private static final int[] PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113 ];
     private static final String ALL_WORDS_KEY = "allWords"
     private static final String WORD_AVG_KEY = "wordAvg"
+    private static final String FAMILY_COUNT_KEY = "familyCount"
+
+    def fetchMostAnagrams() {
+        // fetching words with most anagrams, which means we have to find the key that has the largest Set 
+
+
+    }
 
     def areWordsInSameFamily(String words) {
         String[] wordsArray = words.split(",");
@@ -42,14 +50,33 @@ class AnagramService {
     }
 
     def deleteWord(String word) {
-		def key = generateKey(word)
-        // need to remove from both the sorted set(ALL_WORDS_KEY) and the specified key's set
-        redisService.srem(key, word)
-        redisService.zrem(ALL_WORDS_KEY, word)
+        def anagramGroupKey = generateKey(word)
+        def elemScore = redisService.zscore(ALL_WORDS_KEY, word)
+        def fieldValue = redisService.hget(FAMILY_COUNT_KEY, anagramGroupKey)
+
+        if (elemScore != null) {
+            // if in this block, it means that we do need to remove this word
+    
+            // we want to maintain atomicity to help keep multiple redis keys in sync
+            redisService.withTransaction { Transaction transx ->
+                // need to remove from both the sorted set(ALL_WORDS_KEY) and the specified anagramGroupKey set
+                transx.zrem(ALL_WORDS_KEY, word)
+                transx.srem(anagramGroupKey, word)
+
+                // need to decrement count in FAMILY_COUNT_KEY hash for the word's anagram group
+                if (fieldValue != null) { // should never really be null b/c of Transactions when adding/deleting words
+                    long countValue = Long.parseLong(fieldValue)
+                    if (countValue > 0) {
+                        countValue--
+                        transx.hset(FAMILY_COUNT_KEY, anagramGroupKey, Long.toString(countValue))
+                    }
+                }
+            }
+        }
+
         calculateAndSetWordAvg()
     }
 
-    // TODO, unit and integration test
     def fetchWordsStats() {
         def statsMap = [:]
 
@@ -76,23 +103,43 @@ class AnagramService {
     }
 
     def addToDataStore(List<String> wordsToAdd) {
-        // multiple commands will only use a single connection instance by using withRedis
-        redisService.withRedis { Jedis redis ->
-            for (int i = 0 ; i < wordsToAdd.size() ; i++) {
-                def word = wordsToAdd.get(i)
-                // adding duplicate data via zadd and sadd to redis for performance reasons
-                redis.zadd(ALL_WORDS_KEY, word.length(), word)
-                def key = generateKey(word)
-                redis.sadd(key, word)
+        for (int i = 0 ; i < wordsToAdd.size() ; i++) {
+            def word = wordsToAdd.get(i)
+            def anagramGroupKey = generateKey(word)
+            def elemScore = redisService.zscore(ALL_WORDS_KEY, word)
+            def fieldValue = redisService.hget(FAMILY_COUNT_KEY, anagramGroupKey)
+
+            if (elemScore == null) {
+                // b/c of null, we know that this word has not been added yet
+                // we want to maintain atomicity to help keep multiple redis keys in sync
+                redisService.withTransaction { Transaction transx ->
+                    // adding duplicate data via zadd and sadd to redis for performance reasons
+                    transx.zadd(ALL_WORDS_KEY, word.length(), word)
+                    transx.sadd(anagramGroupKey, word)
+
+                    // for each word that was just added, we are going to set or increment a hash in redis per anagram family
+                    // this is for easier access to how many words there are per anagram group
+
+                    if (fieldValue == null) { 
+                        // we know that this anagramGroupKey doesn't exist yet
+                        transx.hset(FAMILY_COUNT_KEY, anagramGroupKey, "1")
+                    }
+                    else {
+                        // anagramGroupKey already existed in hash, need to increment 
+                        long countValue = Long.parseLong(fieldValue)
+                        countValue++
+                        transx.hset(FAMILY_COUNT_KEY, anagramGroupKey, Long.toString(countValue))
+                    }
+                }
             }
         }
         calculateAndSetWordAvg()
     }
 
 	def Map findAnagramsForWord(String word, String limitParam, String properParam) {
-		def key = generateKey(word)
+		def anagramGroupKey = generateKey(word)
 		// get all set members for key
-		def setMembers = redisService.smembers(key)
+		def setMembers = redisService.smembers(anagramGroupKey)
 		def anagramMap = [:]
 		
 		if (setMembers.size() > 0) {

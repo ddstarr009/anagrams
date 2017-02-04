@@ -15,14 +15,14 @@ class AnagramControllerSpec extends Specification {
     def cleanup() {
     }
 
-    void "test save method"() {
+    void "test addWords method"() {
 		given:
             AnagramService mockAnagramService = Mock()
             controller.anagramService = mockAnagramService
         when:
 			request.json = '{"words" : ["read", "dear", "dare"]}'
 			request.method = 'POST'
-			controller.save()
+			controller.addWords()
         then:
 		    1 * mockAnagramService.addToDataStore(!null)
 			response.text == 'created'
