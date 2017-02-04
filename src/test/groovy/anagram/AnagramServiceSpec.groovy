@@ -131,4 +131,26 @@ class AnagramServiceSpec extends Specification {
             anagramMap.anagrams.size() == 2
     }
 
+    void "test fetchMostAnagrams"() {
+        given: "a mocked service"
+            Set mockSet = new HashSet()
+            mockSet.add("read")
+            mockSet.add("dare")
+            mockSet.add("dear")
+
+            Map mockMap = new HashMap()
+            mockMap.put("9394", "3")
+            mockMap.put("1234", "2")
+            mockMap.put("6767", "1")
+            RedisService mockRedisService = GroovyMock()
+            mockRedisService.hgetAll(_) >> mockMap
+            service.redisService = mockRedisService
+        when: "anagramService.fetchMostAnagrams is called"
+            def mostAnagrams = service.fetchMostAnagrams()
+
+        then: "Expect smembers() was called with the group with the most anagrams, in this mock case, 9394:3"
+            1 * mockRedisService.smembers("9394") >> mockSet
+    }
+
+
 }
