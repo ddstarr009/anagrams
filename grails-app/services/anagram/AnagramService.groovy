@@ -144,37 +144,28 @@ class AnagramService {
     def addToDataStore(List<String> wordsToAdd) {
         for (int i = 0 ; i < wordsToAdd.size() ; i++) {
             def word = wordsToAdd.get(i)
-            def anagramGroupKey = generateKey(word)
-            def elemScore = redisService.zscore(ALL_WORDS_KEY, word)
-            def fieldValue = redisService.hget(FAMILY_COUNT_KEY, anagramGroupKey)
+            def elemScore = redisService.zscore(ALL_WORDS_KEY, word) // this is to check whether the word exists yet
 
             if (elemScore == null) {
-                // b/c of null, we know that this word has not been added yet
-                // we want to maintain atomicity to help keep multiple redis keys in sync
+                // word does not exist, we need to add it
+                def anagramGroupKey = generateKey(word)
+
+                // we want to maintain atomicity to help keep multiple redis keys in sync, hence withTrans
                 redisService.withTransaction { Transaction transx ->
                     // adding duplicate data via zadd and sadd to redis for performance reasons
                     transx.zadd(ALL_WORDS_KEY, word.length(), word)
                     transx.sadd(anagramGroupKey, word)
-
-                    // for each word that was just added, we are going to set or increment a hash in redis per anagram family
-                    // this is for easier access to how many words there are per anagram group
-
-                    if (fieldValue == null) { 
-                        // we know that this anagramGroupKey doesn't exist yet
-                        transx.hset(FAMILY_COUNT_KEY, anagramGroupKey, "1")
-                    }
-                    else {
-                        // anagramGroupKey already existed in hash, need to increment 
-                        long countValue = Long.parseLong(fieldValue)
-                        countValue++
-                        transx.hset(FAMILY_COUNT_KEY, anagramGroupKey, Long.toString(countValue))
-                    }
+                    transx.zincrby(FAMILY_COUNT_KEY, 1, anagramGroupKey)
                 }
+            }
+            else {
+                log.error "hiiiii skipped word: " + word
+                continue // we want to skip this word and any operations surrounding it
             }
         }
         // calculating word avg for fast search on future reqs
-        def wordAvg = calculateWordAvg()
-        redisService.set(WORD_AVG_KEY, wordAvg.toString())
+        //def wordAvg = calculateWordAvg()
+        //transx.set(WORD_AVG_KEY, wordAvg.toString())
     }
 
 	def Map findAnagramsForWord(String word, String limitParam, String properParam) {
