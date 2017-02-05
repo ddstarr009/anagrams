@@ -38,7 +38,7 @@ class AnagramAPISpec extends GebSpec {
     }
 
     void "Test adding words to the data store"() {
-		redisService.flushDB() // we want to flush everything before the test suite begins
+		redisService.flushDB() // we want to flush everything before the rest of the suite begins
         when:"we call a POST with JSON data to add words to our data store"
             def resp = restBuilder().post("$baseUrl/api/v1/words") {
                 contentType "application/json"
@@ -116,6 +116,18 @@ class AnagramAPISpec extends GebSpec {
         then:"the returned json will be empty"
             resp.status == 200
             resp.json.isEmpty() == true
+    }
+
+    void "returns a count of words in the corpus and min/max/median/average word length after anagram family was deleted"() {
+        when:"we make a GET req to the /words/stats endpoint after deleting the listen family"
+            def resp = restBuilder().get("$baseUrl/api/v1/words/stats")
+
+        then:"The resp is OK and the wordCount is now 4"
+            resp.status == 200
+            def wordCount = resp.json.wordCount
+            def withoutCommas = wordCount.replaceAll(",", "")
+            int intCount = Integer.parseInt(withoutCommas)
+            intCount == 4
     }
 
     void "Test finding anagrams for the given word"() {

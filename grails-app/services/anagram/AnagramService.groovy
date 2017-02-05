@@ -60,7 +60,11 @@ class AnagramService {
 
     def deleteAnagramFamily(String word) {
 		def key = generateKey(word)
-        redisService.del(key)
+        def setMembers = redisService.smembers(key)
+
+        for (String wordToDelete : setMembers) {
+            deleteWord(wordToDelete)
+        }
     }
 
     def deleteAllWords() {
