@@ -15,8 +15,22 @@ class AnagramService {
     private static final String FAMILY_COUNT_KEY = "familyCount"
 
 
+    // TODO, unit and integration
     def fetchGroupsByMinSize(String minSize) {
+        // we want to return anagram groups of size >= minSize
+        Map anagramGroups = [:]
 
+        redisService.withRedis { Jedis redis ->
+            Set anagramGroupKeys = redis.zrangeByScore(FAMILY_COUNT_KEY, minSize, "+inf")
+
+            def i = 1
+            for (String anagramGroupKey : anagramGroupKeys) {
+                Set group = redis.smembers(anagramGroupKey)
+                anagramGroups["group" + i] = [size: group.size(), members: group]
+                i++
+            }
+        }
+        return anagramGroups
     }
 
     def fetchMostAnagrams() {
