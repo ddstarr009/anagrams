@@ -20,33 +20,22 @@ class AnagramService {
     }
 
     def fetchMostAnagrams() {
-        // fetching words with most anagrams, which means we have to find the anagramGroupKey that has the largest count
-        Map familyCount = redisService.hgetAll(FAMILY_COUNT_KEY)
+        // fetching words with most anagrams
+        Map anagramMap = [:]
 
-        if (familyCount.isEmpty()) {
-            return familyCount
-        }
-
-        def keyArray = familyCount.keySet() as String[]
-        def groupKeyWithMost = keyArray[0]
-        Map groupMapWithMost = [:]
-        int initialMost = Integer.parseInt(familyCount[groupKeyWithMost])
-        groupMapWithMost["length"] = initialMost
-        groupMapWithMost["groupKey"] = groupKeyWithMost
-
-        familyCount.each { k, v -> 
-            int groupCount = Integer.parseInt(v)
-            if (groupCount > groupMapWithMost.length) {
-                groupMapWithMost.length = groupCount
-                groupMapWithMost.groupKey = k
+        redisService.withRedis { Jedis redis ->
+            def anagramGroupKeySet = redis.zrange(FAMILY_COUNT_KEY, -1,-1)
+            if (anagramGroupKeySet.size() > 0) {
+                String anagramGroupKey = anagramGroupKeySet.iterator().next()
+                def setMembers = redis.smembers(anagramGroupKey)
+                anagramMap.wordsWithMostAnagrams = setMembers
+                anagramMap.countOfAnagramGroup = setMembers.size()
+                return anagramMap
+            }
+            else {
+                return anagramMap
             }
         }
-
-		def setMembers = redisService.smembers(groupMapWithMost.groupKey)
-        Map result = [:]
-        result.wordsWithMostAnagrams = setMembers
-        result.countOfAnagramGroup = setMembers.size()
-        return result
     }
 
     def areWordsInSameFamily(String words) {
