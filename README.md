@@ -27,6 +27,8 @@
 
 ## API docs
 
+ - NOTE: Special characters and spaces are not currently supported in this API 
+
  - GET anagrams for a given word
     - /api/v1/anagrams/:word 
     - Optional URL Params(they can be used together)
@@ -69,3 +71,6 @@
  - DELETE a word and all of its anagrams
     - /api/v1/anagrams/:word
 
+
+## Features that might be nice to have
+- allowing special characters and spaces
