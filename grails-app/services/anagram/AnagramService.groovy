@@ -15,7 +15,6 @@ class AnagramService {
     private static final String FAMILY_COUNT_KEY = "familyCount"
 
 
-    // TODO, unit and integration
     def fetchGroupsByMinSize(String minSize) {
         // we want to return anagram groups of size >= minSize
         Map anagramGroups = [:]
