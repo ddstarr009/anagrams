@@ -77,7 +77,7 @@ class AnagramController {
         render (status: 204)
     }
 
-    def exception(Exception exception) {
+    def exception(MalformedURLException exception) {
         logException exception
         render (status: 400, text: exception?.message)
     }

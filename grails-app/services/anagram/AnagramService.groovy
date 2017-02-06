@@ -92,7 +92,7 @@ class AnagramService {
         if (elemScore != null) {
             // if in this block, it means that we do need to remove this word
 
-            // we want to maintain atomicity to help keep multiple redis keys in sync
+            // we want to maintain atomicity and keep multiple redis keys in sync
             redisService.withTransaction { Transaction transx ->
                 // need to remove from both the sorted set(ALL_WORDS_KEY) and the specified anagramGroupKey set
                 transx.zrem(ALL_WORDS_KEY, word)
@@ -154,7 +154,7 @@ class AnagramService {
                 // word does not exist, we need to add it
                 def anagramGroupKey = generateKey(word)
 
-                // we want to maintain atomicity to help keep multiple redis keys in sync, hence withTrans
+                // we want to maintain atomicity and keep multiple redis keys in sync, hence withTrans
                 redisService.withTransaction { Transaction transx ->
                     // adding duplicate data via zadd and sadd to redis for performance reasons
                     transx.zadd(ALL_WORDS_KEY, word.length(), word)
@@ -222,7 +222,8 @@ class AnagramService {
 		long key = 1L
         for (char c : wordCharArray) {
             if (c < 65 || c > 90) { // A in ascii is 65, anything less than 65 must be some special char/number
-				throw new Exception("Please enter only valid alphabet chars.  No special chars please, you entered: ${c}")
+				throw new MalformedURLException("Please enter only valid alphabet chars.  No special chars please, you entered: ${c}")
+
             }
             int pos = c - 65
             key *= PRIMES[pos]
