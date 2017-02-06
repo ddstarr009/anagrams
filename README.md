@@ -25,30 +25,47 @@
     - from your project root, enter "grails run-app" on the command line.  This will run your app on localhost:8080
 
 
-// GET anagrams for a word
-        "/api/v1/anagrams/$word"(controller: 'anagram', action:'findAnagrams', method: 'GET')
+## API docs
 
-        // GET that takes a set of words and returns whether or not they are all anagrams of each other
-        "/api/v1/anagrams/checker"(controller: 'anagram', action:'anagramChecker', method: 'GET')
+ - GET anagrams for a given word
+    - /api/v1/anagrams/:word 
+    - Optional URL Params(they can be used together)
+        - limit
+            - example usage: /api/v1/anagrams/<someword>?limit=5
+                - this will limit your result to 5 words or less
+        - proper
+            - example usage: /api/v1/anagrams/<someword>?proper=false
+                - this will filter out any proper nouns based on capitalization of the first letter
+                - with no proper param passed, the default is to include proper nouns
 
-        // GET that returns a count of words in the corpus and min/max/median/average word length
-        "/api/v1/words/stats"(controller: 'anagram', action:'wordsStats', method: 'GET')
+ - GET that takes a set of words and returns whether or not they are all anagrams of each other
+    - /api/v1/anagrams/checker
+    - Required URL param
+        - words
+            - example usage: /api/v1/anagrams/checker?words=silent,listen
 
-        // GET that identifies words with the most anagrams
-        "/api/v1/anagrams/most"(controller: 'anagram', action:'mostAnagrams', method: 'GET')
+ - GET that returns a count of words in the corpus and min/max/median/average word length
+    - /api/v1/words/stats
 
-        // GET that returns all anagram groups of size >= x
-        "/api/v1/anagrams/groups/min/$minSize"(controller: 'anagram', action:'anagramGroups', method: 'GET')
+ - GET that identifies words with the most anagrams
+    - /api/v1/anagrams/most
 
-		// POST for adding words to dictionary
-        "/api/v1/words"(controller: 'anagram', action:'addWords', method:'POST')
+ - GET that returns all anagram groups of size >= x
+    - /api/v1/anagrams/groups/min/:minSize
+    - example usage: /api/v1/anagrams/groups/min/7
 
-        // DELETE a single word from data store
-        "/api/v1/words/$word"(controller: 'anagram', action:'deleteWord', method:'DELETE')
+ - POST for adding words to the dictionary.  Takes JSON array of words
+    - /api/v1/words
+    - POST data must adhere to example JSON structure below 
+    - example req: curl -i -X POST -d '{ "words": ["read", "dear"] }' localhost:8080/api/v1/words 
+        - this content-type application/x-www-form-urlencoded is supported as well as application/json
+
+ - DELETE a single word from data store
+    - /api/v1/words/:word
         
-        // DELETE all contents of data store
-        "/api/v1/words"(controller: 'anagram', action:'deleteAllWords', method:'DELETE')
+ - DELETE all contents of data store
+    - /api/v1/words
 
-        // DELETE a word and all of its anagrams
-        "/api/v1/anagrams/$word"(controller: 'anagram', action:'deleteAnagramFamily', method:'DELETE')
+ - DELETE a word and all of its anagrams
+    - /api/v1/anagrams/:word
 
