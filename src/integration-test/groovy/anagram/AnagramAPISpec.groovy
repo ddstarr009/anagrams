@@ -303,7 +303,63 @@ class AnagramAPISpec extends GebSpec {
             resp.text == "false"
     }
 
+    // *********************************** deleting all words again for future tests
+    void "Test deleting all words from data store"() {
+        when:"we call a DELETE for all words"
+            def resp = restBuilder().delete("$baseUrl/api/v1/words")
 
+        then:"the status will be a 204"
+            resp.status == 204
+    }
+
+    void "Test adding a single word to the  data store"() {
+        when:"we call a POST with JSON data to add words to our data store"
+            def resp = restBuilder().post("$baseUrl/api/v1/words") {
+                contentType "application/json"
+                json {
+                    words = ["fruit"]
+                }
+            }
+
+        then:"The words are added to the DB and we receive a 201 for created"
+            resp.status == 201
+    }
+
+    void "returns a count of words in the corpus and min/max/median/average word length with 1 word existing"() {
+        when:"we make a GET req to the /words/stats endpoint"
+            def resp = restBuilder().get("$baseUrl/api/v1/words/stats")
+
+        then:"The resp is OK and the returned stats are correct"
+            resp.status == 200
+            resp.json.wordCount == "1"
+            resp.json.averageWordLength == "5"
+            resp.json.minimumWordLength == 5
+            resp.json.maximumWordLength == 5
+            resp.json.medianWordLength == 5
+    }
+
+    void "Test that returns all anagram groups of size >= x, no groups returned"() {
+        when:"we make a GET req to the /api/v1/anagrams/groups/min/:minSize endpoint passing a min size of 3"
+            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/groups/min/4")
+
+        then:"resp is OK and no anagram groups are returned"
+            resp.status == 200
+            resp.json.isEmpty() == true
+    }
+
+    void "Test that returns all anagram groups of size >= x, 1 group returned"() {
+        when:"we make a GET req to the /api/v1/anagrams/groups/min/:minSize endpoint passing a min size of 3"
+            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/groups/min/1")
+
+        then:"resp is OK and no anagram groups are returned"
+            resp.status == 200
+            def respMap = resp.json
+            respMap.group1 != null
+            respMap.group1.size == 1
+            List anagramList = new ArrayList(respMap.group1.members)
+            def list = anagramList.findAll { it == 'fruit' }
+            list.size() == 1
+    }
 
 
     RestBuilder restBuilder() {
