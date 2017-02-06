@@ -1,4 +1,4 @@
- ### Hi there!  Try out this snappy anagram API!  Have fun :)
+### Hi there!  Try out this snappy anagram API!  Have fun :)
 
 ## Instructions to run the app locally
  - App was developed with Grails version 3.2.4, Groovy version 2.4.7, and JVM version 1.7.0_80
