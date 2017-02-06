@@ -23,7 +23,7 @@ class AnagramAPISpec extends GebSpec {
     // NOTE: the order of this test suite matters.  We are verifying Redis operations and app flow with this series of tests
     // if you change certain tests, e.g., the POST below, make sure you adjust the subsequent tests
 
-    void "Test that returns a count of words in the corpus and min/max/median/average word length after dictionary loaded"() {
+    void "returns a count of words in the corpus after dictionary loaded on bootstrap"() {
         when:"we make a GET req to the /words/stats endpoint after dictionary has been loaded"
             def resp = restBuilder().get("$baseUrl/api/v1/words/stats")
 
@@ -222,6 +222,53 @@ class AnagramAPISpec extends GebSpec {
         then:"the returned json will be empty"
             resp.status == 200
             resp.json.isEmpty() == true
+    }
+
+    // *********************************************************************
+    // let's POST again since we have no words in the data store right now
+    void "Test adding other words to the data store"() {
+        when:"we call a POST with JSON data to add words to our data store"
+            def resp = restBuilder().post("$baseUrl/api/v1/words") {
+                contentType "application/json"
+                json {
+                    words = ["fruit", "listen", "silent", "noarg", "GRoan", "groan", "organ"]
+                }
+            }
+
+        then:"The words are added to the DB and we receive a 201 for created"
+            resp.status == 201
+    }
+
+    void "another Test that returns words with the most anagrams"() {
+        when:"we make a GET req to the anagrams/most endpoint"
+            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/most")
+
+        then:"The resp is OK and the returned anagrams are correct and from the organ group"
+            resp.status == 200
+            List anagramList = new ArrayList(resp.json.wordsWithMostAnagrams)
+            def list = anagramList.findAll { it == 'organ' }
+            list.size() == 1
+            resp.json.countOfAnagramGroup == 4
+    }
+
+    void "Test deleting a word and its anagrams"() {
+        when:"we call a DELETE with a specific token"
+            def resp = restBuilder().delete("$baseUrl/api/v1/anagrams/organ")
+
+        then:"The response is a 204 and the anagram family will be deleted"
+            resp.status == 204
+    }
+
+    void "another Test that returns words with the most anagrams after deleting organ group"() {
+        when:"we make a GET req to the anagrams/most endpoint"
+            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/most")
+
+        then:"The resp is OK and the returned anagrams are correct and from the organ group"
+            resp.status == 200
+            List anagramList = new ArrayList(resp.json.wordsWithMostAnagrams)
+            def list = anagramList.findAll { it == 'silent' }
+            list.size() == 1
+            resp.json.countOfAnagramGroup == 2
     }
 
     void "Test GET that takes a set of words and returns whether or not they are all anagrams of each other"() {
