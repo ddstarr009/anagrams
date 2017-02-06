@@ -64,6 +64,10 @@ dependencies {
     testRuntime "net.sourceforge.htmlunit:htmlunit:2.18"
 }
 
+ext {
+    set "tomcat.version", "8.5.5"
+}
+
 bootRun {
     jvmArgs('-Dspring.output.ansi.enabled=always')
 }
