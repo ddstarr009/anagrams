@@ -51,6 +51,34 @@ class AnagramAPISpec extends GebSpec {
             resp.status == 201
     }
 
+    void "Test that returns all anagram groups of size >= x, 1 group returned"() {
+        when:"we make a GET req to the /api/v1/anagrams/groups/min/:minSize endpoint passing a min size of 4"
+            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/groups/min/4")
+
+        then:"resp is OK and anagram groups only include the read group since the listen group < min"
+            resp.status == 200
+            def respMap = resp.json
+            respMap.group1 != null
+            respMap.group2 == null
+            respMap.group1.size == 4
+            List anagramList = new ArrayList(respMap.group1.members)
+            def list = anagramList.findAll { it == 'Ader' }
+            list.size() == 1
+    }
+
+    void "Test that returns all anagram groups of size >= x, 2 groups returned "() {
+        when:"we make a GET req to the /api/v1/anagrams/groups/min/:minSize endpoint passing a min size of 2"
+            def resp = restBuilder().get("$baseUrl/api/v1/anagrams/groups/min/2")
+
+        then:"resp is OK and anagram groups only include the read group since the listen group < min"
+            resp.status == 200
+            def respMap = resp.json
+            respMap.group1 != null
+            respMap.group2 != null
+            respMap.group3 == null
+    }
+
+
     void "Test that returns words with the most anagrams"() {
         when:"we make a GET req to the anagrams/most endpoint"
             def resp = restBuilder().get("$baseUrl/api/v1/anagrams/most")
@@ -175,6 +203,7 @@ class AnagramAPISpec extends GebSpec {
         then:"the returned json will only have 'dear' in the results"
             resp.status == 200
             List anagramList = new ArrayList(resp.json.anagrams)
+            Collections.sort(anagramList)
             expectedAnagrams.equals(anagramList)
     }
 
