@@ -224,6 +224,20 @@ class AnagramAPISpec extends GebSpec {
             resp.json.isEmpty() == true
     }
 
+    void "returns a count of words in the corpus and min/max/median/average word length after deleting all words"() {
+        when:"we make a GET req to the /words/stats endpoint"
+            def resp = restBuilder().get("$baseUrl/api/v1/words/stats")
+
+        then:"The resp is OK and the returned stats are correct"
+            resp.status == 200
+            resp.json.wordCount == "0"
+            resp.json.averageWordLength == "0"
+            resp.json.minimumWordLength == 0
+            resp.json.maximumWordLength == 0
+            resp.json.medianWordLength == 0
+    }
+
+
     // *********************************************************************
     // let's POST again since we have no words in the data store right now
     void "Test adding other words to the data store"() {

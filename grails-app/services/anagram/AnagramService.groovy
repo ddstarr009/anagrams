@@ -116,6 +116,7 @@ class AnagramService {
 
         redisService.withRedis { Jedis redis ->
             def wordCount = redis.zcard(ALL_WORDS_KEY)
+            // should i add commas? not sure, but i think i'll leave it
             statsMap.wordCount = NumberFormat.getNumberInstance(Locale.US).format(wordCount)
 
             def wordAvg = redis.get(WORD_AVG_KEY)
@@ -129,12 +130,22 @@ class AnagramService {
             statsMap.averageWordLength = redis.get(WORD_AVG_KEY)
 
             def smallestWordSet = redis.zrange(ALL_WORDS_KEY, 0,0)
-            def smallestWord = smallestWordSet.iterator().next()
-            statsMap.minimumWordLength = smallestWord.length()
+            if (smallestWordSet.size() > 0) {
+                def smallestWord = smallestWordSet.iterator().next()
+                statsMap.minimumWordLength = smallestWord.length()
+            }
+            else {
+                statsMap.minimumWordLength = 0
+            }
 
             def largestWordSet = redis.zrange(ALL_WORDS_KEY, -1,-1)
-            def largestWord = largestWordSet.iterator().next()
-            statsMap.maximumWordLength = largestWord.length()
+            if (largestWordSet.size() > 0) {
+                def largestWord = largestWordSet.iterator().next()
+                statsMap.maximumWordLength = largestWord.length()
+            }
+            else {
+                statsMap.maximumWordLength = 0
+            }
 
             def medianWordLength = getMedianWordLength(wordCount)
             statsMap.medianWordLength = medianWordLength
@@ -235,6 +246,9 @@ class AnagramService {
         // calculate avg word length and store in redis
         def allWords = redisService.zrange(ALL_WORDS_KEY, 0 , -1)
         def allWordsSize = allWords.size()
+        if (allWordsSize == 0) {
+            return 0
+        }
         def wordLengthSum = 0
 
         for (String word : allWords) {
