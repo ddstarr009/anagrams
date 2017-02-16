@@ -231,7 +231,7 @@ class AnagramAPISpec extends GebSpec {
         then:"The resp is OK and the returned stats are correct"
             resp.status == 200
             resp.json.wordCount == "0"
-            resp.json.averageWordLength == "0"
+            resp.json.averageWordLength == 0
             resp.json.minimumWordLength == 0
             resp.json.maximumWordLength == 0
             resp.json.medianWordLength == 0

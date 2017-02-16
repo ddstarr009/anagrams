@@ -89,16 +89,26 @@ class AnagramService {
         def elemScore = redisService.zscore(ALL_WORDS_KEY, word) // this is to check whether the word exists yet
 
         if (elemScore != null) {
+            def respObj = null
             // if in this block, it means that we do need to remove this word
 
             // we want to maintain atomicity and keep multiple redis keys in sync
             redisService.withTransaction { Transaction transx ->
                 // need to remove from both the sorted set(ALL_WORDS_KEY) and the specified anagramGroupKey set
                 transx.zrem(ALL_WORDS_KEY, word)
-                transx.srem(anagramGroupKey, word)
+                respObj = transx.srem(anagramGroupKey, word)
                 transx.zincrby(FAMILY_COUNT_KEY, -1, anagramGroupKey)
             }
 
+            // just in case zincrby got errantly decremented via concurrent users DELETE'ing the same word
+            // we need to correct the family count key
+            if (respObj) {
+                if (respObj.get() == 0) {
+                    redisService.zincrby(FAMILY_COUNT_KEY, 1, anagramGroupKey)
+                }
+            }
+
+            // TODO, move to own method
             // calculating word avg for fast search on future GETs
             try {
                 def wordAvg = calculateWordAvg()
@@ -127,7 +137,7 @@ class AnagramService {
                 redis.set(WORD_AVG_KEY, wordAvg.toString())
             }
 
-            statsMap.averageWordLength = redis.get(WORD_AVG_KEY)
+            statsMap.averageWordLength = wordAvg
 
             def smallestWordSet = redis.zrange(ALL_WORDS_KEY, 0,0)
             if (smallestWordSet.size() > 0) {
@@ -163,13 +173,21 @@ class AnagramService {
             if (elemScore == null) {
                 // word does not exist, we need to add it
                 def anagramGroupKey = generateKey(word)
+                def respObj = null
 
                 // we want to maintain atomicity and keep multiple redis keys in sync, hence withTrans
                 redisService.withTransaction { Transaction transx ->
                     // adding duplicate data via zadd and sadd to redis for performance reasons
-                    transx.zadd(ALL_WORDS_KEY, word.length(), word)
+                    respObj = transx.zadd(ALL_WORDS_KEY, word.length(), word)
                     transx.sadd(anagramGroupKey, word)
                     transx.zincrby(FAMILY_COUNT_KEY, 1, anagramGroupKey)
+                }
+                // just in case zincrby got errantly incremented via concurrent users POST'ing the same word
+                // we need to correct the family count key
+                if (respObj) {
+                    if (respObj.get() == 0) {
+                        redisService.zincrby(FAMILY_COUNT_KEY, -1, anagramGroupKey)
+                    }
                 }
             }
             else {
@@ -177,6 +195,7 @@ class AnagramService {
                 continue // we want to skip this word and any operations surrounding it
             }
         }
+        // TODO, maybe move this chunk into another method
         // calculating word avg for fast search on future reqs
         try {
             def wordAvg = calculateWordAvg()
@@ -229,9 +248,10 @@ class AnagramService {
 		def wordUpper = word.toUpperCase()
 		char[] wordCharArray = wordUpper.toCharArray()
         // generating a unique key per anagram family, i.e., if a word has the same letters regardless of order, key will be the same
-		long key = 1L
+		BigDecimal key = 1
         for (char c : wordCharArray) {
             if (c < 65 || c > 90) { // A in ascii is 65, anything less than 65 must be some special char/number
+                // TODO, maybe this exception type is too specific, perhaps change it
 				throw new MalformedURLException("Please enter only valid alphabet chars.  No special chars please, you entered: ${c}")
 
             }
@@ -244,6 +264,7 @@ class AnagramService {
 
     private BigDecimal calculateWordAvg() {
         // calculate avg word length and store in redis
+        // TODO, use current avg for faster perf if it already exists, instead of iterating over all words
         def allWords = redisService.zrange(ALL_WORDS_KEY, 0 , -1)
         def allWordsSize = allWords.size()
         if (allWordsSize == 0) {
